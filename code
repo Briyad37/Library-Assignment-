@@ -1,0 +1,211 @@
+# include <iostream>
+# include<vector>
+using namespace std;
+
+class patron;
+class Book;
+
+
+class Book{
+    private:
+        string ISBN;
+        string Title;
+        string Author;
+        int Copdate;
+        bool check_out;
+        
+    
+    public:
+        enum Genre { fiction, nonfiction ,periodical, biography,children};
+        
+        
+        //parameterized constructor
+        Book(string one, string two, string three, int four, string five, bool six)
+        : ISBN(one), Title(two), Author(three), Copdate(four), check_out(six){}
+
+      
+        
+        //getter functions
+        const string getISBN()const {return ISBN;}
+        const string getTitle()const {return Title;}
+        const string getAuthor()const {return Author;}
+        const int copyrihtdate()const {return Copdate;}
+
+         // Function to check out a book
+        void checkout() {check_out = true;}
+
+        // function to check in a book
+        void checkin() {check_out = false;}
+
+        // overload the operator == for ISBN comparison
+        bool operator==(const Book& other)const {return ISBN == other.ISBN;}
+
+         // overload the operator != for ISBN comparison
+bool operator !=(const Book& other)const {return !(ISBN == other.ISBN);}
+
+        // Overload the << operator to display book information
+        friend ostream& operator<<(ostream& os, const Book& book) {
+        os << "\n\nTitle: " << book.Title << "\nAuthor: " << book.Author << "\nISBN: " << book.ISBN << endl;
+        return os;
+        }
+};
+
+    class patron{
+        private:
+            string username;
+            string cardnumber;
+            int owedfees;
+            
+           
+        public:
+            //getter functions
+            const string getuser_name()const {return username;}
+            const string getcard_number()const {return cardnumber;}
+            const int getowned_fees()const {return owedfees;}
+            
+            //overloading == operator in patron 
+            bool operator==(const patron& other) const {
+            return username == other.username && cardnumber == other.cardnumber;
+            }
+
+            // Overload the << operator to display patron information
+            friend ostream& operator<<(ostream& os, const patron& pt) {
+            os << "\n\nUser Name: " << pt.username << "\nCard Number: " << pt.cardnumber << "\nOwed Fees: " << pt.owedfees << endl;
+            return os;
+            }
+            //parameterised constructor
+            patron(string un, string cn, int of)
+            : username(un), cardnumber(cn), owedfees(of){}
+
+            // Function to check if the user owes fees
+            bool owesfees()const {return owedfees > 0;}
+
+            // Setter function for the fees
+
+            void set_fees(int new_fee){ owedfees = new_fee; }
+    };
+    class transaction{
+        private:
+        Book *book;
+        patron *pat;
+        
+
+        public:
+        string date;
+        enum Activity {checkout, checkin};
+        Activity activity;
+
+        // Constructor
+        
+        transaction(Book b, patron p, Activity act, const string& dt)
+         : book(&b), pat(&p), activity(act), date(dt) {}
+
+        //getter functions to this class
+        const Book * getBook()const {return book;}
+        const patron * getPatron()const {return pat;}
+        const Activity getactivity()const {return activity;}
+        const string getdate()const {return date;}
+    };
+    class Library{
+        private:
+            vector<Book> books;
+            vector<patron> patrons;
+            vector<transaction> transactions;
+        public:
+        // adding book to alibrary
+        void adding(const Book& newbook){books.push_back(newbook);}
+        // Add a patron to the library
+        void addPatron(const patron& newPatron) { patrons.push_back(newPatron);}
+        
+        // Return a vector of patrons who owe fees
+        vector<patron> getPatronsWithFees() {
+        vector<patron> patronsWithFees;
+            for (const patron& pt : patrons) {
+                if (pt.owesfees()) {
+                    patronsWithFees.push_back(pt);
+                }
+        }
+        return patronsWithFees;
+        }
+
+        // Record a transaction
+        void recordTransaction(const transaction& trans) {
+        transactions.push_back(trans);
+    }
+    void checkOutBook(Book& book, patron& patrones, string& date) {
+    
+        // Check if the book and patron are in the library
+
+    bool bookInLibrary = false;
+    bool patronInLibrary = false;
+
+    for (const Book& b : books) {
+        if (b == book) {
+            bookInLibrary = true;
+            break;
+      
+	    }
+    }
+    for (const patron& pt : patrons) {
+        if (pt == patrones) {
+            patronInLibrary = true;
+            break;
+        }
+    }
+    if (!bookInLibrary || !patronInLibrary) {
+        cout << "Error: Book or patron not found in the library." << endl;
+        return;
+    }
+    if (patrones.owesfees()) {
+        cout << "Error: Patron owes fees and cannot check out a book." << endl;
+        return;
+    }
+
+    // Create a transaction
+    transaction trans(book, patrones, transaction::checkout, date);
+    transactions.push_back(trans);
+
+    book.checkout();
+
+    cout << "Book checked out successfully." << endl;
+}
+
+    };
+
+    
+int main() {
+    //library class instance
+    Library library;
+
+    //book instances
+    Book book1("456", "Adventures of leandre", "Byiringiro", 3456, "fiction", false);
+    Book book2("56908", "Conversation with the ministers", "Paul ndashimye", 20211201, "Biography", false);
+
+    //patron instances
+    patron patron1("Leo faith", "123458760", 0);
+    patron patron2("Buregeya prince", "345789034", 100);
+
+    // Add books to the library
+    library.adding(book1);
+    library.adding(book2);
+
+    // Add patrons to the library
+    library.addPatron(patron1);
+    library.addPatron(patron2);
+
+    // Check out a book
+    string checkoutdate = "20-08-2023";
+    library.checkOutBook(book1, patron1, checkoutdate);
+
+    cout<< book1 << endl;
+    cout<< patron1 << endl;
+
+    
+    vector<patron> patronsWithFees = library.getPatronsWithFees();
+    cout << "fees owing patrons:" << endl;
+    for (const patron& pt : patronsWithFees) {
+        cout << pt.getuser_name() << endl;
+    }
+
+    return 0;
+}
